@@ -1,0 +1,36 @@
+> Docnote
+<
+
+This is a very, very lightweight library that provides a unified API for
+defining documentation notes within python source code as values passed via
+``Annotated``.
+
+On its own, this isn't very useful, but in combination with a docs-generation
+library that is aware of them (for example, ``clcdocs``), it can be very
+powerful.
+
+This is distributed as a separate package because it must, by definition, be
+included as a production dependency in any packages that make use of it.
+
+The API here is very, very bare-bones.
+
+> Intended usage
+__embed__: 'code/python'
+    from typing import Annotated
+
+    from docnote import ClcNote
+    from docnote import DocNote
+    from docnote import MarkupLang
+
+    # Note that the actual annotation for this is stored in the type hints for
+    # the module object, not on MY_MODULE_CONSTANT itself!
+    MY_MODULE_CONSTANT: Annotated[
+        int,
+        DocNote('My own special module constant', lang=MarkupLang.MARKDOWN)
+    ] = 24
+
+    # Cleancopy has a prebuilt wrapper, making it a bit cleaner
+    MY_OTHER_MODULE_CONSTANT: Annotated[
+        int,
+        ClcNote('Yet another module costant')
+    ] = 42

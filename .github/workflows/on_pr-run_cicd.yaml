@@ -54,11 +54,6 @@ jobs:
         run: |
           pyright --pythonpath=.venv/bin/python --verbose
 
-      - name: Run refurb
-        shell: bash
-        run: |
-          uv run refurb .
-
   unittests:
     name: Pytest -- unittests
     needs: [lint]

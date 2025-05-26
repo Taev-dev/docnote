@@ -52,7 +52,7 @@ jobs:
       - name: Run pyright
         shell: bash
         run: |
-          pyright
+          pyright --pythonpath=.venv
 
       - name: Run refurb
         shell: bash

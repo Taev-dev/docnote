@@ -21,4 +21,5 @@ class DocNote:
 
 @dataclass(frozen=True, slots=True)
 class ClcNote:
+    value: str
     lang: MarkupLang = MarkupLang.CLEANCOPY

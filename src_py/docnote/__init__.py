@@ -174,7 +174,10 @@ class DocnoteConfig:
 # Second, because within the docnote library itself, we can't specify an
 # inference parameter via config, so we'd prefer just to be explicit
 # everywhere.
-ClcNote = partial(Note, config=DocnoteConfig(markup_lang=MarkupLang.CLEANCOPY))
+ClcNote: Annotated[
+        Callable[[str], Note],
+        DocnoteConfig(include_in_docs=False)
+    ] = partial(Note, config=DocnoteConfig(markup_lang=MarkupLang.CLEANCOPY))
 DOCNOTE_CONFIG_ATTR: Annotated[
         str,
         ClcNote('''Docs generation libraries should use this value to

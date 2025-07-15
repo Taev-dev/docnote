@@ -52,7 +52,7 @@ jobs:
       - name: Run pyright
         shell: bash
         run: |
-          pyright --pythonpath=.venv/bin/python --verbose
+          pyright --pythonpath=.venv/bin/python
 
   unittests:
     name: Pytest -- unittests

@@ -9,7 +9,7 @@ from docnote import DocnoteConfigParams
 from docnote import DocnoteGroup
 from docnote import MarkupLang
 from docnote import Note
-from docnote import docnote_config
+from docnote import docnote
 
 
 class TestDocnote:
@@ -28,7 +28,7 @@ class TestDocnote:
         assert note.config is None
 
     def test_decorator(self):
-        """The @docnote_config decorator must return the original
+        """The @docnote decorator must return the original
         decoree with the DOCNOTE_CONFIG_ATTR added.
         """
         class TestClass:
@@ -37,7 +37,7 @@ class TestDocnote:
         assert not hasattr(TestClass, DOCNOTE_CONFIG_ATTR)
 
         config = DocnoteConfig()
-        retval = docnote_config(config)(TestClass)
+        retval = docnote(config)(TestClass)
         assert retval is TestClass
         assert hasattr(TestClass, DOCNOTE_CONFIG_ATTR)
         assert getattr(TestClass, DOCNOTE_CONFIG_ATTR) is config

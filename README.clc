@@ -6,31 +6,56 @@ defining documentation notes within python source code as values passed via
 ``Annotated``.
 
 On its own, this isn't very useful, but in combination with a docs-generation
-library that is aware of them (for example, ``clcdocs``), it can be very
+library that is aware of them (for example, ``docnote_build``), it can be very
 powerful.
 
 This is distributed as a separate package because it must, by definition, be
-included as a production dependency in any packages that make use of it.
+included as a production dependency in any packages that make use of it, and
+we want to minimize the required redistributable footprint.
 
-The API here is very, very bare-bones.
+The API here is very, very bare-bones, and **purely declarative.** Any and all
+actual functionality, including things like performing the actual enforcement
+checks you request in your ``DocnoteConfig``s, **must be done by your docs
+generation library!** This should ideally run as part of your CI/CD suite,
+or a githook, etc.
 
-> Intended usage
+> Basic intended usage
 __embed__: 'code/python'
     from typing import Annotated
 
-    from docnote import ClcNote
-    from docnote import DocNote
-    from docnote import MarkupLang
+    import docnote
+    from docnote import Note
+    from docnote import DocnoteConfig
+    from docnote import docnote
+
+    # Optional -- allows you to set module-level config
+    DOCNOTE_CONFIG = DocnoteConfig(
+        enforce_known_lang=True,
+        markup_lang=doctnote.MarkupLang.CLEANCOPY)
 
     # Note that the actual annotation for this is stored in the type hints for
     # the module object, not on MY_MODULE_CONSTANT itself!
     MY_MODULE_CONSTANT: Annotated[
         int,
-        DocNote('My own special module constant', lang=MarkupLang.MARKDOWN)
+        Note('My own special module constant')
     ] = 24
-
-    # Cleancopy has a prebuilt wrapper, making it a bit cleaner
-    MY_OTHER_MODULE_CONSTANT: Annotated[
+    # Notes can have their own dedicated configs
+    MY_OTHER_CONSTANT: Annotated[
         int,
-        ClcNote('Yet another module costant')
+        Note('My other module constant', config=DocnoteConfig())
     ] = 42
+
+    # The @docnote decorator allows you to configure settings on a per-object
+    # basis (configs can also be attached via ``Annotated``!)
+    @docnote(DocnoteConfig(include_in_docs=True))
+    def _included_in_docs_despite_underscore():
+        """By default / convention, docs generators will skip names that
+        start with a single underscore (or ``__mangled`` names). With
+        ``include_in_docs=True`` set in the attached config, this
+        will be included in the generated docs, despite the leading
+        underscore.
+
+        Note that the opposite works too, if you want to exclude an
+        otherwise public member from appearance in the docs.
+        """
+        ...

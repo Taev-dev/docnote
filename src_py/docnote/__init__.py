@@ -28,6 +28,19 @@ class MarkupLang(Enum):
 
 @dataclass(frozen=True, slots=True)
 class Note:
+    """``Note``s are how you add actual notes for your documentation.
+    They can be given their own config, or implicitly (and lazily)
+    inherit the config from their parents. Use them within ``Annotated``
+    names:
+
+    > Example note usage
+    __embed__: 'code/python'
+        from typing import Annotated
+
+        from docnote import Note
+
+        MY_VAR: Annotated[int, Note('My special int')] = 7
+    """
     value: str
     _: KW_ONLY
     config: DocnoteConfig | None = field(kw_only=True, default=None)
@@ -71,7 +84,7 @@ class DocnoteConfig:
     """
     enforce_known_lang: Annotated[
             bool | None,
-            ClcNote('''When ``True``, this will ensure that the current config
+            Note('''When ``True``, this will ensure that the current config
                 (and configs attached to its children) will enforce that the
                 ``markup_lang`` is included in your specified allowlist of
                 markup languages, **as determined by your docs generation
@@ -81,16 +94,18 @@ class DocnoteConfig:
                 must be performed by your docs generation library.**
                 ''')
         ] = field(default=None, metadata={'docnote.stacked': True})
+
     markup_lang: Annotated[
             str | MarkupLang | None,
-            ClcNote('''When specified, this sets the markup language to use
+            Note('''When specified, this sets the markup language to use
                 for any ``Note`` instances on the attached object (and its
                 children) that don't explicitly declare a ``lang`` value.
                 ''')
         ] = field(default=None, metadata={'docnote.stacked': True})
+
     include_in_docs: Annotated[
             bool | None,
-            ClcNote('''Whether or not to include the attached object (and its
+            Note('''Whether or not to include the attached object (and its
                 children) in the generated documentation. By default
                 (``None``), this will be inferred based on python conventions:
                 names with a single underscore (or ``__mangled`` names) will
@@ -106,9 +121,10 @@ class DocnoteConfig:
                 the end behavior is determined by the docs generation library.
                 ''')
         ] = field(default=None, metadata={'docnote.stacked': True})
+
     parent_group_name: Annotated[
             str | None,
-            ClcNote('''This assigns the attached object to a group within its
+            Note('''This assigns the attached object to a group within its
                 parent by its name.
 
                 Note that docnote itself **does not validate the name** at
@@ -121,9 +137,10 @@ class DocnoteConfig:
                 git hooks, etc.
                 ''')
         ] = field(default=None, metadata={'docnote.stacked': False})
+
     child_groups: Annotated[
             Sequence[DocnoteGroup] | None,
-            ClcNote('''This defines both the groups that should be available
+            Note('''This defines both the groups that should be available
                 for immediate children to assign themselves to, as well as
                 their desired ordering in the final documentation.
 
@@ -134,9 +151,10 @@ class DocnoteConfig:
                 as part of the module).
                 ''')
         ] = field(default=None, metadata={'docnote.stacked': False})
+
     metadata: Annotated[
             dict[str, Any] | None,
-            ClcNote('''Arbitrary metadata may be included in the config as
+            Note('''Arbitrary metadata may be included in the config as
                 an extension mechanism for docs generation libraries.
 
                 Whether or not a particular key is inherited by children of
@@ -170,17 +188,15 @@ class DocnoteConfig:
                     + 'attached object!')
 
 
-# We have this for two reasons: first, for backwards compatibility.
-# Second, because within the docnote library itself, we can't specify an
-# inference parameter via config, so we'd prefer just to be explicit
-# everywhere.
+# We have this purely for backwards compatibility. We set our own config for
+# using cleancopy at the end of the module.
 ClcNote: Annotated[
         Callable[[str], Note],
         DocnoteConfig(include_in_docs=False)
     ] = partial(Note, config=DocnoteConfig(markup_lang=MarkupLang.CLEANCOPY))
 DOCNOTE_CONFIG_ATTR: Annotated[
         str,
-        ClcNote('''Docs generation libraries should use this value to
+        Note('''Docs generation libraries should use this value to
             get access to any configs attached to objects via the
             ``docnote`` decorator.
             ''')
@@ -191,7 +207,7 @@ DOCNOTE_CONFIG_ATTR: Annotated[
 class DocnoteGroup:
     name: Annotated[
         str,
-        ClcNote('''The name of the ``DocnoteGroup`` is used by children to
+        Note('''The name of the ``DocnoteGroup`` is used by children to
             assign themselves to the group.
 
             It might also be used by an automatic docs generation library in
@@ -200,13 +216,13 @@ class DocnoteGroup:
     _: KW_ONLY
     description: Annotated[
             str | None,
-            ClcNote('''Groups may optionally include a description, which
+            Note('''Groups may optionally include a description, which
                 may be used by your docs generation library.
                 ''')
         ] = None
     metadata: Annotated[
             dict[str, Any] | None,
-            ClcNote('''Groups may optionally include metadata, which
+            Note('''Groups may optionally include metadata, which
                 may be used by your docs generation library.
                 ''')
         ] = None
@@ -231,3 +247,13 @@ def docnote[T](
 def _attach_config[T](to_decorate: T, *, config: DocnoteConfig) -> T:
     setattr(to_decorate, DOCNOTE_CONFIG_ATTR, config)
     return to_decorate
+
+
+# This has to go after we define the DocnoteConfig class, so it might as well
+# go at the very, very end
+# Note that this is better than explicitly using ``ClcNote`` internally,
+# because we can't use that before it's been defined. Bizzarely (I think
+# because of the __future__ import) it will actually successfully exec the
+# module if you do, but pyright freaks out.
+DOCNOTE_CONFIG = DocnoteConfig(
+    enforce_known_lang=True, markup_lang=MarkupLang.CLEANCOPY)

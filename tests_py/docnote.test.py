@@ -80,6 +80,31 @@ class TestDocnote:
     def test_get_stackables(self, before: DocnoteConfig, expected_retval):
         assert before.get_stackables() == expected_retval
 
+    @pytest.mark.parametrize(
+        'before,expected_retval',
+        [
+            (
+                DocnoteConfig(enforce_known_lang=True),
+                {'enforce_known_lang': True}),
+            (
+                DocnoteConfig(
+                    enforce_known_lang=False,
+                    markup_lang='foo',),
+                {'enforce_known_lang': False, 'markup_lang': 'foo'}),
+            (
+                DocnoteConfig(),
+                {}),
+            (
+                DocnoteConfig(parent_group_name='foo'),
+                {'parent_group_name': 'foo'}),
+            (
+                DocnoteConfig(
+                    enforce_known_lang=True,
+                    parent_group_name='foo'),
+                {'enforce_known_lang': True, 'parent_group_name': 'foo'}),])
+    def test_as_nontotal_dict(self, before: DocnoteConfig, expected_retval):
+        assert before.as_nontotal_dict() == expected_retval
+
     def test_config_params_matches_config(self):
         """The DocnoteConfigParams typeddict must match the
         DocnoteConfig.

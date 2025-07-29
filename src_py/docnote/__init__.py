@@ -197,12 +197,29 @@ class DocnoteConfig:
         ] = field(default=None, metadata={'docnote.stacked': None})
 
     def get_stackables(self) -> DocnoteConfigParams:
+        """Gets all of the **non-None** params that are also marked as
+        being stackable. Note that unlike dataclasses.asdict, this does
+        not create any copies of the underlying objects.
+        """
         retval: DocnoteConfigParams = {}
         for dc_field in dc_fields(self):
             if dc_field.metadata.get('docnote.stacked'):
                 value = getattr(self, dc_field.name)
                 if value is not None:
                     retval[dc_field.name] = value
+
+        return retval
+
+    def as_nontotal_dict(self) -> DocnoteConfigParams:
+        """Gets all of the **non-None** params, regardless of whether
+        they are stacked or not. Note that unlike dataclasses.asdict,
+        this does not create any copies of the underlying objects.
+        """
+        retval: DocnoteConfigParams = {}
+        for dc_field in dc_fields(self):
+            value = getattr(self, dc_field.name)
+            if value is not None:
+                retval[dc_field.name] = value
 
         return retval
 

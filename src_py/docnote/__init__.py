@@ -10,6 +10,8 @@ from enum import Enum
 from functools import partial
 from typing import Annotated
 from typing import Any
+from typing import Final
+from typing import LiteralString
 from typing import TypedDict
 
 __all__ = [
@@ -124,9 +126,9 @@ class DocnoteConfig:
                 Note that under the following situation:
                 ++  parent sets ``include_in_docs=False``
                 ++  child sets ``include_in_docs=True``
-                the end behavior is determined by the docs generation library.
+                the end behavior is determined by the docs extraction library.
                 ''')
-        ] = field(default=None, metadata={'docnote.stacked': True})
+        ] = field(default=None, metadata={'docnote.stacked': False})
 
     parent_group_name: Annotated[
             str | None,
@@ -226,12 +228,19 @@ ClcNote: Annotated[
         DocnoteConfig(include_in_docs=False)
     ] = partial(Note, config=DocnoteConfig(markup_lang=MarkupLang.CLEANCOPY))
 DOCNOTE_CONFIG_ATTR: Annotated[
-        str,
+        Final[LiteralString],
         Note('''Docs generation libraries should use this value to
             get access to any configs attached to objects via the
             ``docnote`` decorator.
             ''')
     ] = '_docnote_config'
+DOCNOTE_CONFIG_ATTR_FOR_MODULES: Annotated[
+        Final[LiteralString],
+        Note('''Modules documented via docnote can defined a module-level
+            ``DocnoteConfig`` at this attribute to customize the behavior
+            of the module itself.
+            ''')
+    ] = 'DOCNOTE_CONFIG'
 
 
 @dataclass(frozen=True, slots=True)

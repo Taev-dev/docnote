@@ -26,6 +26,11 @@ class MarkupLang(Enum):
     RST = ('rst',)
 
 
+class ReftypeMarker(Enum):
+    METACLASS = 'metaclass'
+    DECORATOR = 'decorator'
+
+
 @dataclass(frozen=True, slots=True)
 class Note:
     """``Note``s are how you add actual notes for your documentation.
@@ -52,6 +57,7 @@ class DocnoteConfigParams(TypedDict, total=False):
     include_in_docs: bool
     parent_group_name: str
     child_groups: Sequence[DocnoteGroup]
+    mark_special_reftype: ReftypeMarker
     metadata: dict[str, Any]
 
 
@@ -149,6 +155,31 @@ class DocnoteConfig:
                 config is assigned to a module, it will apply only to toplevel
                 members of the module (classes, functions, etc defined directly
                 as part of the module).
+                ''')
+        ] = field(default=None, metadata={'docnote.stacked': False})
+
+    mark_special_reftype: Annotated[
+            ReftypeMarker | None,
+            Note('''Special reftypes (currently decorators and metaclasses)
+                defined at the top level of a module **must** attach this to
+                the object for stubbed imports to work correctly during
+                extraction. For non-toplevel objects, the marker will
+                nonetheless be included in the final object summary.
+
+                > Example usage
+                __embed__: 'code/python'
+                    # When imported and used by other modules, this will
+                    # now correctly be treated as a decorator during docnote
+                    # extraction.
+                    @docnote(DocnoteConfig(
+                        mark_special_reftype=ReftypeMarker.DECORATOR))
+                    def my_decorator[T: type | Callable](func: T) -> T:
+                        ...
+
+                    # (in some other module)
+                    @my_decorator
+                    def foo():
+                        ...
                 ''')
         ] = field(default=None, metadata={'docnote.stacked': False})
 

@@ -5,9 +5,10 @@ This is a very, very lightweight library that provides a unified API for
 defining documentation notes within python source code as values passed via
 ``Annotated``.
 
-On its own, this isn't very useful, but in combination with a docs-generation
-library that is aware of them (for example, ``docnote_build``), it can be very
-powerful.
+On its own, this isn't very useful, but in combination with a docs-extraction
+library that is aware of them (for example, ``docnote_extract``), and then to
+a docs-generation library that knows how to make use of the extracted docs
+(for example, ``cleancopywriter``) it can be very powerful.
 
 This is distributed as a separate package because it must, by definition, be
 included as a production dependency in any packages that make use of it, and

@@ -59,6 +59,7 @@ class DocnoteConfigParams(TypedDict, total=False):
     include_in_docs: bool
     parent_group_name: str
     child_groups: Sequence[DocnoteGroup]
+    ordering_index: int
     mark_special_reftype: ReftypeMarker
     metadata: dict[str, Any]
 
@@ -157,6 +158,41 @@ class DocnoteConfig:
                 config is assigned to a module, it will apply only to toplevel
                 members of the module (classes, functions, etc defined directly
                 as part of the module).
+                ''')
+        ] = field(default=None, metadata={'docnote.stacked': False})
+
+    ordering_index: Annotated[
+            int | None,
+            Note('''Although implementations should ensure that the ordering
+                of child items within a parent (or within its designated
+                ``parent_group_name``) is ^^deterministic^^, it is by default
+                nonetheless ^^unspecified and arbitrary.^^ In other words,
+                though multiple identical docs builds should always produce
+                the same result, the ordering of child members is, by default,
+                completely up to the documentation generator's implementation.
+
+                The ordering index can be used to override the default behavior
+                and explicitly specify its position within the parent. Values
+                function like indices in python: positive values are indexed
+                from the start of the siblings list, negative values from the
+                end, with the default, unordered siblings in-between.
+
+                Ordering indices need not be sequential. All of the following
+                would be valid, and must be sorted as shown:
+
+                > Non-sequential indices
+                __embed__: 'code/python'
+                    [1, 3, 5, 7, None, -7, -6]
+                    [None, -2, -1]
+                    [0, 1, None, -9]
+                    [0, 10, 20, None, -20, -10, -1]
+
+                If two siblings have the same index, the ordering should be
+                stable with respect to the default ordering. In other words,
+                they should first be ordered by their indices, and then
+                siblings with matching ``ordering_index`` values should be
+                ordered by the documentation generator's default ordering
+                strategy.
                 ''')
         ] = field(default=None, metadata={'docnote.stacked': False})
 

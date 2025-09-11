@@ -54,6 +54,8 @@ class Note:
 
 
 class DocnoteConfigParams(TypedDict, total=False):
+    canonical_module: str
+    canonical_name: str
     enforce_known_lang: bool
     markup_lang: str | MarkupLang
     include_in_docs: bool
@@ -91,6 +93,54 @@ class DocnoteConfig:
     entire project, by attaching a config to the toplevel
     ``__init__.py``.
     """
+    canonical_module: Annotated[
+            str | None,
+            Note('''Set this to the fullname of a module (for example,
+                ``foo.bar``) to override the automatically-detected canonical
+                module for the attached object **and its children**.
+
+                This is primarily useful for module-level constants that
+                cannot otherwise be attributed to their parent module and
+                objects defined within nostub modules, though it may also be
+                helpful with re-exported objects, or when dealing with
+                instances of imported classes.
+
+                Typical usage is to set ``canonical_module=__name__``,
+                pinning the object to the class in which it was defined.
+                ''')
+        ] = field(default=None, metadata={'docnote.stacked': True})
+
+    canonical_name: Annotated[
+            str | None,
+            Note('''Set this to an explicit canonical name to override the
+                default implicit normalization done by docs generation
+                libraries.
+
+                This is primarily useful for module-level constants
+                defined within nostub modules and imported elsewhere,
+                especially when imported under a different name (for example,
+                if another module ran ``import my_constant as nostub_constant``
+                on the example below).
+
+                > Example typical usage: ``nostub_module.py``
+                __embed__: 'code/python'
+                    from typing import Annotated
+
+                    from docnote import DocnoteConfig
+
+                    my_constant: Annotated[
+                        int,
+                        DocnoteConfig(
+                            # Not required to define ``canonical_name``, but
+                            # usually paired together
+                            canonical_module=__name__,
+                            # Note that this name is typically redundant with
+                            # the name within the module.
+                            canonical_name='my_constant'
+                        )] = 42
+                ''')
+        ] = field(default=None, metadata={'docnote.stacked': False})
+
     enforce_known_lang: Annotated[
             bool | None,
             Note('''When ``True``, this will ensure that the current config
@@ -298,6 +348,13 @@ DOCNOTE_CONFIG_ATTR_FOR_MODULES: Annotated[
 
 @dataclass(frozen=True, slots=True)
 class DocnoteGroup:
+    """``DocnoteGroup`` instances can be used to separate children of
+    a particular object into groups for the purpose of documentation.
+    For example, if you were defining an ``int`` subclass, you might
+    take advantage of this to move all of the math-related methods into
+    a separate section from additional application-specific methods
+    added in the subclass.
+    """
     name: Annotated[
         str,
         Note('''The name of the ``DocnoteGroup`` is used by children to
